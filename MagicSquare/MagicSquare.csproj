@@ -49,5 +49,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ConstraintSatisfactionProblem\ConstraintSatisfactionProblem.csproj">
+      <Project>{bca4e922-ec1c-4635-842f-b0d0d6b3e658}</Project>
+      <Name>ConstraintSatisfactionProblem</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
