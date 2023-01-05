@@ -30,49 +30,48 @@ namespace MagicSquare
 
         static void BackTracking(int[] variables, int[][] domains, int n)
         {
-            int[][] localDomains = new int[n * n][];
+            List<int>[] localDomains = new List<int>[n * n];
             for(int i=0;i<localDomains.Length;i++)
             {
-                localDomains[i] = new int[n * n];
-                domains[i].CopyTo(localDomains[i], 0);
+                localDomains[i] = new List<int>();
+                localDomains[i].AddRange(domains[i]);
             }
 
             int variablePointer = 0;
-            int[] domainPointers = new int[n*n];
-            for (int i = 0; i < domainPointers.Length; i++)
-                domainPointers[i] = -1;
 
             while(variablePointer!=-1)
             {
-                if (domainPointers[variablePointer] < localDomains[variablePointer].Length-1)
+                if (localDomains[variablePointer].Count > 0)
                 {
-                    domainPointers[variablePointer]++;
-                    if(variablePointer==localDomains.Length-1)
+                    if (variablePointer < variables.Length - 1)
+                        variablePointer++;
+                    else
                     {
-                        if (CheckConstraints(variables, domains, domainPointers, n))
+                        if (CheckConstraints(variables, localDomains, n))
                         {
-                            for(int c=0;c<n*n;c++)
+                            for (int c = 0; c < n * n; c++)
                             {
                                 Console.Write(variables[c] + " ");
                             }
                             Console.Write("\n");
                         }
+                        localDomains[variablePointer].RemoveAt(0);
                     }
-                    else
-                        variablePointer++;
                 }
                 else
                 {
-                    domainPointers[variablePointer] = -1;
+                    localDomains[variablePointer].AddRange(domains[variablePointer]);
                     variablePointer--;
+                    if(variablePointer!=-1)
+                        localDomains[variablePointer].RemoveAt(0);
                 }
             }
         }
-        static bool CheckConstraints(int[] variables,int[][] domains, int[] domainPointers,int n)
+        static bool CheckConstraints(int[] variables, List<int>[] domains,int n)
         {
             for(int i=0;i< variables.Length; i++)
             {
-                variables[i] = domains[i][domainPointers[i]];
+                variables[i] = domains[i][0];
             }
             if (!MatrixOperations.IsEveryValueDifferent(variables))
                 return false;
