@@ -117,6 +117,8 @@ namespace Crosswords
 
             NodeConsistency(words, domains);
 
+            ForwardChecking(words, domains, constraints, 0);
+
             BackTracking(words, domains, constraints, 0);
         }
 
@@ -163,12 +165,8 @@ namespace Crosswords
                     {
                         foreach(var word in words.Values)
                         {
-                            //foreach(var character in word)
-                            //{
-                                Console.Write(word );
-                           // }
+                            Console.Write(word );
                             Console.Write(" ");
-
                         }
                         Console.Write("\n");
                     }
@@ -182,6 +180,81 @@ namespace Crosswords
                     }
                 }
 
+            }
+        }
+
+        static void ForwardChecking(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints,int variablePointer)
+        {
+            List<string>[] localDomains = new List<string>[domains.Length];
+            localDomains[variablePointer] = new List<string>();
+            localDomains[variablePointer].AddRange(domains[variablePointer]);
+            while (localDomains[variablePointer].Count > 0)
+            {
+                words[variablePointer] = localDomains[variablePointer][0].ToCharArray();
+
+                if (CheckConsistency(words, domains, constraints))
+                {
+                    for (int i = variablePointer + 1; i < localDomains.Length; i++)
+                    {
+                        localDomains[i] = new List<string>();
+                        localDomains[i].AddRange(domains[i]);
+                    }
+
+                    ShrinkDomain(localDomains, constraints, words[variablePointer], variablePointer);
+
+                    if (variablePointer < words.Count - 1)
+                        ForwardChecking(words, domains, constraints, variablePointer + 1);
+                    else
+                    {
+                        foreach (var word in words.Values)
+                        {
+                            Console.Write(word);
+                            Console.Write(" ");
+                        }
+                        Console.Write("\n");
+                    }
+                }
+                localDomains[variablePointer].RemoveAt(0);
+                if (localDomains[variablePointer].Count == 0)
+                {
+                    for (int i = 0; i < words[variablePointer].Length; i++)
+                    {
+                        words[variablePointer][i] = '\0';
+                    }
+                }
+
+            }
+        }
+        static void ShrinkDomain(List<string>[] domains, List<WordsCharacterConstraints> constraints, char[] word,int id)
+        {
+            foreach(var c in constraints)
+            {
+                if(c.IDWordC==id)
+                {
+                    List<string> newDomain = new List<string>();
+                    List<string> currentDomain = domains[c.IDWordR];
+                    if (currentDomain == null)
+                        continue;
+                    for(int i=0;i<currentDomain.Count;i++)
+                    {
+                        if (currentDomain[i][c.charWordR] == word[c.charWordC])
+                            newDomain.Add(currentDomain[i]);
+                    }
+                    domains[c.IDWordR] = newDomain;
+                }
+                else if (c.IDWordR == id)
+                {
+                    List<string> newDomain = new List<string>();
+                    List<string> currentDomain = domains[c.IDWordC];
+                    if (currentDomain == null)
+                        continue;
+                    for (int i = 0; i < currentDomain.Count; i++)
+                    {
+                        if (currentDomain[i][c.charWordC] == word[c.charWordR])
+                            newDomain.Add(currentDomain[i]);
+                    }
+                    domains[c.IDWordC] = newDomain;
+                }
             }
         }
         static bool CheckConsistency(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
