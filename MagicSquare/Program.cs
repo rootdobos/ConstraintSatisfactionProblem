@@ -128,7 +128,54 @@ namespace MagicSquare
                 //    localDomains[variablePointer].RemoveAt(0);
             }
         }
+        static void IterativeBroadening(int n, List<int>[] domains)
+        {
+            List<int> unlabelled=new List<int>();
+            for (int i = 0; i < n * n; i++)
+                unlabelled[i] = i;
+            int b = 1;
+            List<KeyValuePair<int, int>> result;
+            do
+            {
+                result = Breadth_bounded_dfs(unlabelled, new List<KeyValuePair<int, int>>(),domains,b);
+                b++;
+            } while (b <= (n * n) || result == null);
+        }
+        static List<KeyValuePair<int, int>> Breadth_bounded_dfs(List<int> unlabelled,List<KeyValuePair<int,int>> compoundLabel, List<int>[] domains,int b)
+        {
+            List<int>[] localDomains = new List<int>[domains.Length];
+            for (int i = 0; i < localDomains.Length; i++)
+            {
+                localDomains[i] = new List<int>();
+                localDomains[i].AddRange(domains[i]);
+            }
+            List<KeyValuePair<int, int>> result;
+            if (unlabelled.Count == 0)
+                return compoundLabel;
+            else
+            {
+                int variable = unlabelled[0];
+                int iteration = 0;
+                do
+                {
+                    int value = domains[variable][0];
+                    domains[variable].RemoveAt(0);
+                    compoundLabel.Add(new KeyValuePair<int, int>(variable, value));
+                    if (CompoundLabelOperations.CheckIfValuesDiffers(compoundLabel))
+                    {
+                        unlabelled.Remove(variable);
+                        result = Breadth_bounded_dfs(unlabelled, compoundLabel, domains, b);
+                        if (result != null) return result;
+                    }
+                    else
+                        compoundLabel.RemoveAt(compoundLabel.Count - 1);
+                    iteration++;
 
+                }
+                while (domains[variable].Count > 0 || iteration < b);
+                return null;
+            }
+        }
         static void ArcConsistencyStart(int[] variables, List<int>[] domains, int n, int variablePointer)
         {
             List<int>[] localDomains = new List<int>[n * n];
