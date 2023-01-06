@@ -117,6 +117,10 @@ namespace Crosswords
 
             NodeConsistency(words, domains);
 
+            ArcConsistency(words, domains, constraints);
+
+            IterativeBroadening(words, domains, constraints);
+
             ForwardChecking(words, domains, constraints, 0);
 
             BackTracking(words, domains, constraints, 0);
@@ -144,6 +148,138 @@ namespace Crosswords
                         newDomain.Add(domains[i][j].ToLower());
                 }
                 domains[i] = newDomain;
+            }
+        }
+        static void ArcConsistency(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
+        {
+            List<Tuple<int, int>> q = new List<Tuple<int, int>>();
+            foreach(var c in constraints)
+            {
+                q.Add(new Tuple<int, int>(c.IDWordC, c.IDWordR));
+                q.Add(new Tuple<int, int>(c.IDWordR, c.IDWordC));
+            }
+            while(q.Count>0)
+            {
+                Tuple<int,int> actualArc=q[0];
+                q.RemoveAt(0);
+                if (ReviseDomain(actualArc.Item1,actualArc.Item2,words,domains,constraints))
+                {
+                    foreach(var c in constraints)
+                    {
+                        if(c.IDWordC==actualArc.Item1 )
+                        {
+                            if (!ContainsTuple(q, c.IDWordR, c.IDWordC))
+                                q.Add(new Tuple<int, int>(c.IDWordR, c.IDWordC));
+                        }
+                        else if(c.IDWordR==actualArc.Item1)
+                        {
+                            if (!ContainsTuple(q, c.IDWordC, c.IDWordR))
+                                q.Add(new Tuple<int, int>(c.IDWordC, c.IDWordR));
+                        }
+                    }
+                }
+            }
+        }
+        static bool ContainsTuple(List<Tuple<int, int>> q, int x, int y)
+        {
+            foreach (var e in q)
+            {
+                if (e.Item2 == y && e.Item1 == x)
+                    return true;
+            }
+            return false;
+        }
+        static bool ReviseDomain(int x, int y, Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
+        {
+            bool deleted = false;
+            List<string> newDomain = new List<string>();
+            for(int i=0;i<domains[x].Count;i++)
+            {
+                words[x] = domains[x][i].ToCharArray();
+                for (int j=0;j<domains[y].Count;j++)
+                {
+                    words[y] = domains[y][j].ToCharArray();
+                    if(CheckConsistency(words,domains,constraints))
+                    {
+                        newDomain.Add(domains[x][i]);
+                        break;
+                    }
+                }
+            }
+            if(newDomain.Count< domains[x].Count)
+            {
+                domains[x] = newDomain;
+                deleted = true;
+            }
+            for (int i = 0; i < words[x].Length; i++)
+            {
+                words[x][i] = '\0';
+            }
+            for (int i = 0; i < words[y].Length; i++)
+            {
+                words[y][i] = '\0';
+            }
+            return deleted;
+        }
+
+        static void IterativeBroadening(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
+        {
+            int b = 1;
+            int maxDomainSize = domains[0].Count;
+            _GotSolution = false;
+            for(int i=1;i<domains.Length;i++)
+            {
+                if (domains[i].Count > maxDomainSize)
+                    maxDomainSize = domains[i].Count;
+            }
+            do
+            {
+               Breadth_bounded_dfs(words,domains,constraints,0,b);
+                b++;
+            } while (b <= maxDomainSize && (words.Values).ElementAt(words.Count - 1)[0] == '\0');
+        }
+
+        static bool _GotSolution;
+
+        static void Breadth_bounded_dfs(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints, int variablePointer, int b)
+        {
+            List<string>[] localDomains = new List<string>[domains.Length];
+            for (int i = 0; i < localDomains.Length; i++)
+            {
+                localDomains[i] = new List<string>();
+                localDomains[i].AddRange(domains[i]);
+            }
+            int iteration = 0;
+            while (localDomains[variablePointer].Count > 0 || iteration<b)
+            {
+                words[variablePointer] = localDomains[variablePointer][0].ToCharArray();
+                if (CheckConsistency(words, domains, constraints))
+                {
+                    if (variablePointer < words.Count - 1)
+                        Breadth_bounded_dfs(words, domains, constraints, variablePointer + 1,b);
+                    else
+                    {
+                        _GotSolution = true;
+                        foreach (var word in words.Values)
+                        {
+                            Console.Write(word);
+                            Console.Write(" ");
+                        }
+                        Console.Write("\n");
+                    }
+                }
+                if (_GotSolution)
+                    return;
+                localDomains[variablePointer].RemoveAt(0);
+                iteration++;
+
+                if (localDomains[variablePointer].Count == 0)
+                {
+                    for (int i = 0; i < words[variablePointer].Length; i++)
+                    {
+                        words[variablePointer][i] = '\0';
+                    }
+                }
             }
         }
         static void BackTracking(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints, int variablePointer)
@@ -179,7 +315,6 @@ namespace Crosswords
                         words[variablePointer][i] = '\0';
                     }
                 }
-
             }
         }
 
@@ -271,5 +406,6 @@ namespace Crosswords
             }
             return true;
         }
+        
     }
 }
