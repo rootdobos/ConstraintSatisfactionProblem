@@ -116,6 +116,8 @@ namespace Crosswords
             }
 
             NodeConsistency(words, domains);
+
+            BackTracking(words, domains, constraints, 0);
         }
 
 
@@ -142,6 +144,59 @@ namespace Crosswords
                 domains[i] = newDomain;
             }
         }
+        static void BackTracking(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints, int variablePointer)
+        {
+            List<string>[] localDomains = new List<string>[domains.Length];
+            for (int i = 0; i < localDomains.Length; i++)
+            {
+                localDomains[i] = new List<string>();
+                localDomains[i].AddRange(domains[i]);
+            }
+            while(localDomains[variablePointer].Count>0)
+            {
+                words[variablePointer] = localDomains[variablePointer][0].ToCharArray();
+                if(CheckConsistency(words, domains, constraints))
+                {
+                    if(variablePointer<words.Count-1)
+                        BackTracking(words, domains, constraints, variablePointer+1);
+                    else
+                    {
+                        foreach(var word in words.Values)
+                        {
+                            //foreach(var character in word)
+                            //{
+                                Console.Write(word );
+                           // }
+                            Console.Write(" ");
 
+                        }
+                        Console.Write("\n");
+                    }
+                }
+                localDomains[variablePointer].RemoveAt(0);
+                if (localDomains[variablePointer].Count==0)
+                {
+                    for(int i=0;i< words[variablePointer].Length; i++)
+                    {
+                        words[variablePointer][i] = '\0';
+                    }
+                }
+
+            }
+        }
+        static bool CheckConsistency(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
+        {
+            for(int i=0;i<constraints.Count;i++)
+            {
+                WordsCharacterConstraints c = constraints[i];
+                char[] wordR = words[c.IDWordR];
+                char[] wordC = words[c.IDWordC];
+                if (wordR[0] == '\0' || wordC[0] == '\0')
+                    continue;
+                if (wordR[c.charWordR] != wordC[c.charWordC])
+                    return false;
+            }
+            return true;
+        }
     }
 }
