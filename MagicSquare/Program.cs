@@ -10,7 +10,7 @@ namespace MagicSquare
     {
         static void Main(string[] args)
         {
-            int n = 4;
+            int n = 3;
 
             int[] variables = new int[n * n];
             for (int i = 0; i < variables.Length; i++)
