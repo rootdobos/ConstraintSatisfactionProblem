@@ -95,12 +95,12 @@ namespace MagicSquare
             BasicSearchStrategies.Steps = 0;
             Console.WriteLine("Iterative Broadening");
             s.Start();
-            BasicSearchStrategies.IterativeBroadening(variables, domains, constraints);
+            Dictionary<int, int?> resultIterativeBroadening= BasicSearchStrategies.IterativeBroadening(variables, domains, constraints);
             s.Stop();
             Console.WriteLine("Time: " + s.ElapsedMilliseconds);
             s.Reset();
             Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
-            PrintSquare(variables,n);
+            PrintSquare(resultIterativeBroadening, n);
 
 
             Console.WriteLine("Forward Checking First Solution");

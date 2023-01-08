@@ -12,7 +12,7 @@ namespace ConstraintSatisfactionProblem
         static bool _GotSolution;
         
         #region Crosswords
-        public static void IterativeBroadening(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
+        public static Dictionary<int, char[]> IterativeBroadening(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
         {
             int b = 1;
             int maxDomainSize = domains[0].Count;
@@ -27,12 +27,28 @@ namespace ConstraintSatisfactionProblem
                 Breadth_bounded_dfs(words, domains, constraints, 0, b);
                 b++;
             } while (b <= maxDomainSize && (words.Values).ElementAt(words.Count - 1)[0] == '\0');
+
+            Dictionary<int, char[]> result = new Dictionary<int, char[]>();
+            foreach(KeyValuePair<int,char[]> pair in words)
+            {
+                char[] copy = new char[pair.Value.Length];
+                for (int i = 0; i < pair.Value.Length; i++)
+                {
+                    copy[i] = pair.Value[i];
+                }
+                result.Add(pair.Key, copy);
+            }
+            for (int i = 0; i < words.Count; i++)
+            {
+                FillTheVariableWithNull(domains, words, i);
+            }
+            return result;
         }
         static void Breadth_bounded_dfs(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints, int variablePointer, int b)
         {
             List<string>[] localDomains = CopyDomains(domains, variablePointer);
             int iteration = 0;
-            while (localDomains[variablePointer].Count > 0 || iteration <= b)
+            while (localDomains[variablePointer].Count > 0 && iteration < b)
             {
                 Steps++;
                 words[variablePointer] = localDomains[variablePointer][0].ToCharArray();
@@ -51,8 +67,9 @@ namespace ConstraintSatisfactionProblem
                 localDomains[variablePointer].RemoveAt(0);
                 iteration++;
 
-                FillTheVariableWithNull(localDomains, words, variablePointer);
+                
             }
+            FillTheVariableWithNull(localDomains, words, variablePointer);
         }
         public static void BackTracking(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints, int variablePointer, List<Dictionary<int, char[]>> solutions, bool stopAfterOneResult = false)
         {
@@ -114,7 +131,7 @@ namespace ConstraintSatisfactionProblem
         }
         #endregion
         #region MagicSquare
-        public static void IterativeBroadening(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints)
+        public static Dictionary<int, int?> IterativeBroadening(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints)
         {
             int b = 1;
             int maxDomainSize = domains[0].Count;
@@ -129,6 +146,19 @@ namespace ConstraintSatisfactionProblem
                 Breadth_bounded_dfs(variables, domains, constraints, 0, b);
                 b++;
             } while (b <= maxDomainSize && (variables.Values).ElementAt(variables.Count - 1) == null);
+
+            Dictionary<int, int?> result = new Dictionary<int, int?>();
+            foreach (KeyValuePair<int, int?> pair in variables)
+            {
+                
+                result.Add(pair.Key, pair.Value);
+            }
+            for (int i = 0; i < variables.Count; i++)
+            {
+                FillTheVariableWithNull(domains, variables, i);
+            }
+            return result;
+
         }
         static void Breadth_bounded_dfs(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints, int variablePointer, int b)
         {
@@ -152,9 +182,8 @@ namespace ConstraintSatisfactionProblem
                     return;
                 localDomains[variablePointer].RemoveAt(0);
                 iteration++;
-
-                FillTheVariableWithNull(localDomains, variables, variablePointer);
             }
+            FillTheVariableWithNull(localDomains, variables, variablePointer);
         }
         public static void BackTracking(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints, int variablePointer, List<Dictionary<int, int?>> solutions, bool stopAfterOneResult=false)
         {
@@ -260,22 +289,22 @@ namespace ConstraintSatisfactionProblem
         }
         static void FillTheVariableWithNull(List<string>[] domains, Dictionary<int, char[]> words,int variablePointer)
         {
-            if (domains[variablePointer].Count == 0)
-            {
+            //if (domains[variablePointer].Count == 0)
+            //{
                 for (int i = 0; i < words[variablePointer].Length; i++)
                 {
                     words[variablePointer][i] = '\0';
                 }
-            }
+          //  }
 
         }
 
         static void FillTheVariableWithNull(List<int?>[] domains, Dictionary<int, int?> variables, int variablePointer)
         {
-            if (domains[variablePointer].Count == 0)
-            {
+            //if (domains[variablePointer].Count == 0)
+            //{
                 variables[variablePointer] = null;
-            }
+            //}
 
         }
         static List<string>[] CopyDomains(List<string>[] domains, int start)

@@ -179,12 +179,14 @@ namespace Crosswords
             BasicSearchStrategies.Steps = 0;
             Console.WriteLine("Iterative Broadening");
             s.Start();
-            BasicSearchStrategies.IterativeBroadening(words, domains, constraints);
+            Dictionary<int, char[]> resultIterativeBroadening =BasicSearchStrategies.IterativeBroadening(words, domains, constraints);
             s.Stop();
             Console.WriteLine("Time: " + s.ElapsedMilliseconds);
             s.Reset();
             Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
-            PrintMatrix(rows,columns,constraints,words);
+            PrintMatrix(rows,columns,constraints, resultIterativeBroadening);
+
+            
 
             Console.WriteLine("Forward Checking First Solution");
             List<Dictionary<int, char[]>> forwardCheckingSolutions = new List<Dictionary<int, char[]>>();
