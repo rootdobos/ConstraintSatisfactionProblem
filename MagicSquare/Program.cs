@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using ConstraintSatisfactionProblem;
 namespace MagicSquare
 {
     class Program
@@ -12,34 +13,75 @@ namespace MagicSquare
         {
             int n = 3;
 
-            int[] variables = new int[n * n];
-            for (int i = 0; i < variables.Length; i++)
-                variables[i] = i;
+            Dictionary<int, int?> variables = new Dictionary<int, int?>();
+            for (int i = 0; i < n * n; i++)
+                variables.Add(i, null);
 
-            List<int>[] domains =new List<int>[n * n];
+            List<int?>[] domains =new List<int?>[n * n];
             for(int i=0;i < domains.Length;i++)
             {
-                domains[i] = new List<int>();
+                domains[i] = new List<int?>();
                 for (int j = 0; j < n*n; j++)
                     domains[i].Add( j + 1);
             }
-            Stopwatch s = new Stopwatch();
+            List<SumConstraint> constraints = new List<SumConstraint>();
+            int magicSum = (n * (n *n+ 1)) / 2;
 
-            s.Start();
-            ArcConsistencyStart(variables, domains, n,0);
-            s.Stop();
-            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            SumConstraint diagonalConstraint = new SumConstraint();
+            SumConstraint antidiagonalConstraint = new SumConstraint();
 
-            s.Start();
-            RecursiveBackTrackingStart(variables, domains, n, 0);
-            s.Stop();
-            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            diagonalConstraint.Sum = magicSum;
+            antidiagonalConstraint.Sum = magicSum;
 
-            s.Start();
-            BackTracking(variables, domains, n);
-            s.Stop();
-            Console.WriteLine("Time: "+s.ElapsedMilliseconds);
-            Console.ReadLine();
+            for (int i=0;i<n;i++)
+            {
+                SumConstraint newRowConstraint = new SumConstraint();
+                SumConstraint newColumnConstraint = new SumConstraint();
+                newRowConstraint.Sum = magicSum;
+                newColumnConstraint.Sum = magicSum;
+                for(int j=0;j<n;j++)
+                {
+                    newColumnConstraint.IDs.Add(i+j*n);
+                    newRowConstraint.IDs.Add(i*n+j);
+                }
+
+                constraints.Add(newColumnConstraint);
+                constraints.Add(newRowConstraint);
+
+                diagonalConstraint.IDs.Add(i * (1 + n));
+                antidiagonalConstraint.IDs.Add((i+1)*(n-1));
+
+            }
+
+            constraints.Add(diagonalConstraint);
+            constraints.Add(antidiagonalConstraint);
+
+            ProblemReduction.NodeConsistency(variables, domains);
+            ProblemReduction.ArcConsistency(variables, domains,constraints);
+
+            BasicSearchStrategies.IterativeBroadening(variables, domains, constraints);
+
+            BasicSearchStrategies.ForwardChecking(variables, domains, constraints, 0);
+
+            BasicSearchStrategies.BackTracking(variables, domains, constraints, 0);
+
+            //Stopwatch s = new Stopwatch();
+
+            //s.Start();
+            //ArcConsistencyStart(variables, domains, n,0);
+            //s.Stop();
+            //Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+
+            //s.Start();
+            //RecursiveBackTrackingStart(variables, domains, n, 0);
+            //s.Stop();
+            //Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+
+            //s.Start();
+            //BackTracking(variables, domains, n);
+            //s.Stop();
+            //Console.WriteLine("Time: "+s.ElapsedMilliseconds);
+            //Console.ReadLine();
         }
 
         static void BackTracking(int[] variables, List<int>[] domains, int n)

@@ -122,7 +122,7 @@ namespace Crosswords
 
             BasicSearchStrategies.IterativeBroadening(words, domains, constraints);
 
-            //BasicSearchStrategies.ForwardChecking(words, domains, constraints, 0);
+            BasicSearchStrategies.ForwardChecking(words, domains, constraints, 0);
 
             BasicSearchStrategies.BackTracking(words, domains, constraints, 0);
         }

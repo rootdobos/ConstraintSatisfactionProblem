@@ -39,6 +39,34 @@ namespace ConstraintSatisfactionProblem
             return deleted;
         }
 
+        public static bool ReviseDomain(int x, int y, Dictionary<int, int?> variables, List<int?>[] domains,List<SumConstraint> constraints)
+        {
+            bool deleted = false;
+            List<int?> newDomain = new List<int?>();
+            for (int i = 0; i < domains[x].Count; i++)
+            {
+                variables[x] = i+1;
+                for (int j = 0; j < domains[y].Count; j++)
+                {
+                    variables[y] = j+1;
+                    if (CheckConsistency(variables, domains, constraints))
+                    {
+                        newDomain.Add(domains[x][i]);
+                        break;
+                    }
+                }
+            }
+            if (newDomain.Count < domains[x].Count)
+            {
+                domains[x] = newDomain;
+                deleted = true;
+            }
+            variables[x] = null;
+            variables[y] = null;
+            return deleted;
+        }
+
+
         public static bool CheckConsistency(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
         {
             for (int i = 0; i < constraints.Count; i++)
@@ -54,6 +82,35 @@ namespace ConstraintSatisfactionProblem
             return true;
         }
 
+        public static bool CheckConsistency(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints)
+        {
+            for (int i = 0; i < variables.Count; i++)
+            {
+                for (int j = 0; j < variables.Count; j++)
+                {
+                    if (i != j)
+                        if (variables[i] != null && variables[j] != null)
+                            if (variables[i] == variables[j])
+                                return false;
+                }
+            }
+            for (int i = 0; i < constraints.Count; i++)
+            {
+                int? sum = 0;
+                for (int j = 0; j < constraints[i].IDs.Count; j++)
+                {
+                    int? e = variables[constraints[i].IDs[j]];
+                    if (e != null)
+                        sum += e;
+                    else
+                        break;
+                    if (j == constraints[i].IDs.Count - 1)
+                        if (constraints[i].Sum != sum)
+                            return false;
+                }
+            }
+            return true;
+        }
         public static void ShrinkDomain(List<string>[] domains, List<WordsCharacterConstraints> constraints, char[] word, int id)
         {
             foreach (var c in constraints)
@@ -86,6 +143,21 @@ namespace ConstraintSatisfactionProblem
                 }
             }
         }
+
+        public static void ShrinkDomain(List<int?>[] domains, List<SumConstraint> constraints, Dictionary<int, int?> variables, int id)
+        {
+            for(int i=id+1;i<domains.Length;i++)
+            {
+                List<int?> newDomain = new List<int?>();
+                for(int j= 0;j < domains[i].Count;j++)
+                {
+                    if (domains[i][j] != variables[id])
+                        newDomain.Add(domains[i][j]);
+                }
+                domains[i] = newDomain;
+            }
+        }
+
 
         public static bool ContainsTuple(List<Tuple<int, int>> q, int x, int y)
         {
