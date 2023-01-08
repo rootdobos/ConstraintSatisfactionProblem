@@ -21,22 +21,9 @@ namespace ConstraintSatisfactionProblem
             }
         }
 
-        public static void NodeConsistency(Dictionary<int, int?> variables, List<int?>[] domains)
+        public static int  ArcConsistency(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
         {
-            for (int i = 0; i < domains.Length; i++)
-            {
-                List<int?> newDomain = new List<int?>();
-                for (int j = 0; j < domains[i].Count; j++)
-                {
-                    if (domains[i][j]>0 && domains[i][j] <=(variables.Count))
-                        newDomain.Add(domains[i][j]);
-                }
-                domains[i] = newDomain;
-            }
-        }
-
-        public static void ArcConsistency(Dictionary<int, char[]> words, List<string>[] domains, List<WordsCharacterConstraints> constraints)
-        {
+            int steps = 0;
             List<Tuple<int, int>> q = new List<Tuple<int, int>>();
             foreach (var c in constraints)
             {
@@ -45,6 +32,7 @@ namespace ConstraintSatisfactionProblem
             }
             while (q.Count > 0)
             {
+                steps++;
                 Tuple<int, int> actualArc = q[0];
                 q.RemoveAt(0);
                 if (Operations.ReviseDomain(actualArc.Item1, actualArc.Item2, words, domains, constraints))
@@ -64,9 +52,26 @@ namespace ConstraintSatisfactionProblem
                     }
                 }
             }
+            return steps;
         }
-        public static void ArcConsistency(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints)
+
+        public static void NodeConsistency(Dictionary<int, int?> variables, List<int?>[] domains)
         {
+            for (int i = 0; i < domains.Length; i++)
+            {
+                List<int?> newDomain = new List<int?>();
+                for (int j = 0; j < domains[i].Count; j++)
+                {
+                    if (domains[i][j] > 0 && domains[i][j] <= (variables.Count))
+                        newDomain.Add(domains[i][j]);
+                }
+                domains[i] = newDomain;
+            }
+        }
+
+        public static int ArcConsistency(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints)
+        {
+            int steps = 0;
             List<Tuple<int, int>> q = new List<Tuple<int, int>>();
             for(int i=0;i<variables.Count-1;i++)
             {
@@ -82,6 +87,7 @@ namespace ConstraintSatisfactionProblem
                 q.RemoveAt(0);
                 if (Operations.ReviseDomain(actualArc.Item1, actualArc.Item2, variables, domains, constraints))
                 {
+                    steps++;
                     for(int i=0;i<variables.Count;i++)
                     { 
                         if (i!= actualArc.Item1)
@@ -92,6 +98,7 @@ namespace ConstraintSatisfactionProblem
                     }
                 }
             }
+            return steps;
         }
     }
 }

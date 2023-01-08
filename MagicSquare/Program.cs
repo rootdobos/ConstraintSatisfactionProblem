@@ -11,7 +11,9 @@ namespace MagicSquare
     {
         static void Main(string[] args)
         {
-            int n = 3;
+            Console.WriteLine("Write an n number:");
+            
+            int n =int.Parse( Console.ReadLine());
 
             Dictionary<int, int?> variables = new Dictionary<int, int?>();
             for (int i = 0; i < n * n; i++)
@@ -56,254 +58,107 @@ namespace MagicSquare
             constraints.Add(diagonalConstraint);
             constraints.Add(antidiagonalConstraint);
 
+            Console.WriteLine("Constraint Graph of the problem:");
+            Console.WriteLine("Number of nodes (variables): " + variables.Count);
+            
+            Console.WriteLine("Number of edges (binary constraints): " + (variables.Count) * (variables.Count + 1) / 2);
+            Console.WriteLine("Number of hyperedges (n-constraints): " + constraints.Count);
+
+            Console.Write("Size of domains: ");
+            for (int i = 0; i < domains.Length; i++)
+            {
+                Console.Write("D" + i + "=" + domains[i].Count + " ");
+            }
+            Console.Write("\n");
+
             ProblemReduction.NodeConsistency(variables, domains);
-            ProblemReduction.ArcConsistency(variables, domains,constraints);
 
+
+            Console.Write("Size of domains after Node Consistency: ");
+            for (int i = 0; i < domains.Length; i++)
+            {
+                Console.Write("D" + i + "=" + domains[i].Count + " ");
+            }
+            Console.Write("\n");
+
+            int revisions =ProblemReduction.ArcConsistency(variables, domains, constraints);
+            Console.WriteLine("Number of domain changes during arc consistency: " + revisions);
+            Console.Write("Size of domains after Arc Consistency: ");
+            for (int i = 0; i < domains.Length; i++)
+            {
+                Console.Write("D" + i + "=" + domains[i].Count + " ");
+            }
+            Console.Write("\n");
+
+            Stopwatch s = new Stopwatch();
+
+            BasicSearchStrategies.Steps = 0;
+            Console.WriteLine("Iterative Broadening");
+            s.Start();
             BasicSearchStrategies.IterativeBroadening(variables, domains, constraints);
+            s.Stop();
+            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            s.Reset();
+            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
+            PrintSquare(variables,n);
 
-            BasicSearchStrategies.ForwardChecking(variables, domains, constraints, 0);
 
-            BasicSearchStrategies.BackTracking(variables, domains, constraints, 0);
+            Console.WriteLine("Forward Checking First Solution");
+            List<Dictionary<int, int?>> forwardCheckingSolutions = new List<Dictionary<int, int?>>();
+            BasicSearchStrategies.Steps = 0;
+            s.Start();
+            BasicSearchStrategies.ForwardChecking(variables, domains, constraints, 0, forwardCheckingSolutions,true );
+            s.Stop();
+            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            s.Reset();
+            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
+            PrintSquare(forwardCheckingSolutions[0], n);
 
-            //Stopwatch s = new Stopwatch();
+            Console.WriteLine("Backtracking First Solution");
+            List<Dictionary<int, int?>> backTrackingSolutions = new List<Dictionary<int, int?>>();
+            BasicSearchStrategies.Steps = 0;
+            s.Start();
+            BasicSearchStrategies.BackTracking(variables, domains, constraints, 0,backTrackingSolutions, true);
+            s.Stop();
+            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            s.Reset();
+            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
+            PrintSquare(backTrackingSolutions[0], n);
 
-            //s.Start();
-            //ArcConsistencyStart(variables, domains, n,0);
-            //s.Stop();
-            //Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            Console.WriteLine("Forward Checking");
+            forwardCheckingSolutions = new List<Dictionary<int, int?>>();
+            BasicSearchStrategies.Steps = 0;
+            s.Start();
+            BasicSearchStrategies.ForwardChecking(variables, domains, constraints, 0, forwardCheckingSolutions);
+            s.Stop();
+            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            s.Reset();
+            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
+            Console.WriteLine("Number of Found Solutions: " + forwardCheckingSolutions.Count);
 
-            //s.Start();
-            //RecursiveBackTrackingStart(variables, domains, n, 0);
-            //s.Stop();
-            //Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            Console.WriteLine("Backtracking");
+            backTrackingSolutions = new List<Dictionary<int, int?>>();
+            BasicSearchStrategies.Steps = 0;
+            s.Start();
+            BasicSearchStrategies.BackTracking(variables, domains, constraints, 0, backTrackingSolutions);
+            s.Stop();
+            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            s.Reset();
+            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
+            Console.WriteLine("Number of Found Solutions: " + backTrackingSolutions.Count);
+            Console.ReadLine();
 
-            //s.Start();
-            //BackTracking(variables, domains, n);
-            //s.Stop();
-            //Console.WriteLine("Time: "+s.ElapsedMilliseconds);
-            //Console.ReadLine();
         }
-
-        static void BackTracking(int[] variables, List<int>[] domains, int n)
+        static void PrintSquare(Dictionary<int, int?> variables, int n)
         {
-            List<int>[] localDomains = new List<int>[n * n];
-            for(int i=0;i<localDomains.Length;i++)
-            {
-                localDomains[i] = new List<int>();
-                localDomains[i].AddRange(domains[i]);
-            }
-
-            int variablePointer = 0;
-
-            while(variablePointer!=-1)
-            {
-                if (localDomains[variablePointer].Count > 0)
-                {
-                    if (variablePointer < variables.Length - 1)
-                        variablePointer++;
-                    else
-                    {
-                        if (CheckConstraints(variables, localDomains, n))
-                        {
-                            for (int c = 0; c < n * n; c++)
-                            {
-                                Console.Write(variables[c] + " ");
-                            }
-                            Console.Write("\n");
-                        }
-                        localDomains[variablePointer].RemoveAt(0);
-                    }
-                }
-                else
-                {
-                    localDomains[variablePointer].AddRange(domains[variablePointer]);
-                    variablePointer--;
-                    if(variablePointer!=-1)
-                        localDomains[variablePointer].RemoveAt(0);
-                }
-            }
-        }
-        static void RecursiveBackTrackingStart(int[] variables, List<int>[] domains, int n, int variablePointer)
-        {
-            List<int>[] localDomains = new List<int>[n * n];
-            for (int i = 0; i < localDomains.Length; i++)
-            {
-                localDomains[i] = new List<int>();
-                localDomains[i].AddRange(domains[i]);
-            }
-            while (localDomains[variablePointer].Count > 0)
-            {
-                RecursiveBackTracking(variables, localDomains, n, variablePointer);
-
-                localDomains[variablePointer].RemoveAt(0);
-            }
-        }
-        static void RecursiveBackTracking(int[] variables, List<int>[] domains, int n, int variablePointer)
-        {
-            List<int>[] localDomains = new List<int>[n * n];
-            for (int i = 0; i < localDomains.Length; i++)
-            {
-                localDomains[i] = new List<int>();
-                localDomains[i].AddRange(domains[i]);
-            }
-            variables[variablePointer] = localDomains[variablePointer][0];
-            if (variablePointer < variables.Length - 1)
-            {
-                while (localDomains[variablePointer + 1].Count > 0)
-                {
-                    ArcConsistencyRecursive(variables, localDomains, n, variablePointer + 1);
-
-                    localDomains[variablePointer + 1].RemoveAt(0);
-                }
-            }
-            else
-            {
-                if (CheckConstraintsOnVariables(variables, n))
-                {
-                    for (int c = 0; c < n * n; c++)
-                    {
-                        Console.Write(variables[c] + " ");
-                    }
-                    Console.Write("\n");
-                }
-                //else
-                //    localDomains[variablePointer].RemoveAt(0);
-            }
-        }
-        static void IterativeBroadening(int n, List<int>[] domains)
-        {
-            List<int> unlabelled=new List<int>();
-            for (int i = 0; i < n * n; i++)
-                unlabelled[i] = i;
-            int b = 1;
-            List<KeyValuePair<int, int>> result;
-            do
-            {
-                result = Breadth_bounded_dfs(unlabelled, new List<KeyValuePair<int, int>>(),domains,b);
-                b++;
-            } while (b <= (n * n) || result == null);
-        }
-        static List<KeyValuePair<int, int>> Breadth_bounded_dfs(List<int> unlabelled,List<KeyValuePair<int,int>> compoundLabel, List<int>[] domains,int b)
-        {
-            List<int>[] localDomains = new List<int>[domains.Length];
-            for (int i = 0; i < localDomains.Length; i++)
-            {
-                localDomains[i] = new List<int>();
-                localDomains[i].AddRange(domains[i]);
-            }
-            List<KeyValuePair<int, int>> result;
-            if (unlabelled.Count == 0)
-                return compoundLabel;
-            else
-            {
-                int variable = unlabelled[0];
-                int iteration = 0;
-                do
-                {
-                    int value = domains[variable][0];
-                    domains[variable].RemoveAt(0);
-                    compoundLabel.Add(new KeyValuePair<int, int>(variable, value));
-                    if (CompoundLabelOperations.CheckIfValuesDiffers(compoundLabel))
-                    {
-                        unlabelled.Remove(variable);
-                        result = Breadth_bounded_dfs(unlabelled, compoundLabel, domains, b);
-                        if (result != null) return result;
-                    }
-                    else
-                        compoundLabel.RemoveAt(compoundLabel.Count - 1);
-                    iteration++;
-
-                }
-                while (domains[variable].Count > 0 || iteration < b);
-                return null;
-            }
-        }
-        static void ArcConsistencyStart(int[] variables, List<int>[] domains, int n, int variablePointer)
-        {
-            List<int>[] localDomains = new List<int>[n * n];
-            for (int i = 0; i < localDomains.Length; i++)
-            {
-                localDomains[i] = new List<int>();
-                localDomains[i].AddRange(domains[i]);
-            }
-            while (localDomains[variablePointer].Count > 0)
-            {
-
-                ArcConsistencyRecursive(variables, localDomains, n, variablePointer);
-
-                localDomains[variablePointer ].RemoveAt(0);
-            }
-        }
-        static void ArcConsistencyRecursive(int[] variables, List<int>[] domains, int n, int variablePointer)
-        {
-            List<int>[] localDomains = new List<int>[n * n];
-            for (int i = 0; i < localDomains.Length; i++)
-            {
-                localDomains[i] = new List<int>();
-                localDomains[i].AddRange(domains[i]);
-            }
-            variables[variablePointer] = localDomains[variablePointer][0];
-            if (variablePointer<variables.Length-1)
-            {
-                
-                for(int i=variablePointer+1;i<variables.Length;i++)
-                {
-                    for(int j=0;j<localDomains[i].Count;j++)
-                    {
-                        if (localDomains[i][j] == variables[variablePointer])
-                        {
-                            localDomains[i].RemoveAt(j);
-                            break;
-                        }
-                    }
-                }
-                while (localDomains[variablePointer + 1].Count > 0)
-                {
-                    ArcConsistencyRecursive(variables, localDomains, n, variablePointer + 1);
-
-                    localDomains[variablePointer + 1].RemoveAt(0);
-                }
-            }
-            else
-            {
-                if (CheckConstraintsOnVariables(variables, n))
-                {
-                    for (int c = 0; c < n * n; c++)
-                    {
-                        Console.Write(variables[c] + " ");
-                    }
-                    Console.Write("\n");
-                }
-                //else
-                //    localDomains[variablePointer].RemoveAt(0);
-            }
-        }
-
-
-        static bool CheckConstraintsOnVariables(int[] variables, int n)
-        {
-            if (!MatrixOperations.IsEveryValueDifferent(variables))
-                return false;
-            int[] sumInColumns = MatrixOperations.SumInColumns(variables, n);
-            int[] sumInRows = MatrixOperations.SumInRows(variables, n);
-            int sumInMainDiagonal = MatrixOperations.SumInMainDiagonal(variables, n);
-            int sumInAntiDiagonal = MatrixOperations.SumInAntiDiagonal(variables, n);
-
-            if (sumInMainDiagonal != sumInAntiDiagonal)
-                return false;
             for (int i = 0; i < n; i++)
-                if (sumInColumns[i] != sumInMainDiagonal || sumInRows[i] != sumInMainDiagonal)
-                    return false;
-            return true;
-        }
-
-        static bool CheckConstraints(int[] variables, List<int>[] domains,int n)
-        {
-            for(int i=0;i< variables.Length; i++)
             {
-                variables[i] = domains[i][0];
+                for (int j = 0; j < n; j++)
+                {
+                    Console.Write(variables[n * j + i] + "\t");
+                }
+                Console.Write("\n");
             }
-            return CheckConstraintsOnVariables(variables, n);
         }
     }
 }
