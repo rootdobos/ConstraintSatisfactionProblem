@@ -13,20 +13,20 @@ namespace MagicSquare
         {
             Console.WriteLine("Write an n number:");
             
-            int n =int.Parse( Console.ReadLine());
+            int n =int.Parse( Console.ReadLine()); //reading the n from the console.
 
-            Dictionary<int, int?> variables = new Dictionary<int, int?>();
+            Dictionary<int, int?> variables = new Dictionary<int, int?>(); //initializing the variables
             for (int i = 0; i < n * n; i++)
                 variables.Add(i, null);
 
-            List<int?>[] domains =new List<int?>[n * n];
+            List<int?>[] domains =new List<int?>[n * n]; //initializing the domains
             for(int i=0;i < domains.Length;i++)
             {
                 domains[i] = new List<int?>();
                 for (int j = 0; j < n*n; j++)
                     domains[i].Add( j + 1);
             }
-            List<SumConstraint> constraints = new List<SumConstraint>();
+            List<SumConstraint> constraints = new List<SumConstraint>(); //initializing the constraints
             int magicSum = (n * (n *n+ 1)) / 2;
 
             SumConstraint diagonalConstraint = new SumConstraint();
@@ -58,6 +58,7 @@ namespace MagicSquare
             constraints.Add(diagonalConstraint);
             constraints.Add(antidiagonalConstraint);
 
+            //printing the information about the constraint graph
             Console.WriteLine("Constraint Graph of the problem:");
             Console.WriteLine("Number of nodes (variables): " + variables.Count);
             
@@ -65,13 +66,15 @@ namespace MagicSquare
             Console.WriteLine("Number of hyperedges (n-constraints): " + constraints.Count);
 
             Console.Write("Size of domains: ");
-            for (int i = 0; i < domains.Length; i++)
+            for (int i = 0; i < domains.Length; i++) //printing every domain size
             {
                 Console.Write("D" + i + "=" + domains[i].Count + " ");
             }
             Console.Write("\n");
 
-            ProblemReduction.NodeConsistency(variables, domains);
+
+
+            ProblemReduction.NodeConsistency(variables, domains); //calling the node consistency algorithm and printing the new domain sizes
 
 
             Console.Write("Size of domains after Node Consistency: ");
@@ -81,7 +84,7 @@ namespace MagicSquare
             }
             Console.Write("\n");
 
-            int revisions =ProblemReduction.ArcConsistency(variables, domains, constraints);
+            int revisions =ProblemReduction.ArcConsistency(variables, domains, constraints);//calling the arc consistency algorithm and printing the new domain sizes
             Console.WriteLine("Number of domain changes during arc consistency: " + revisions);
             Console.Write("Size of domains after Arc Consistency: ");
             for (int i = 0; i < domains.Length; i++)
@@ -93,15 +96,8 @@ namespace MagicSquare
             Stopwatch s = new Stopwatch();
 
             BasicSearchStrategies.Steps = 0;
-            Console.WriteLine("Iterative Broadening");
-            s.Start();
-            Dictionary<int, int?> resultIterativeBroadening= BasicSearchStrategies.IterativeBroadening(variables, domains, constraints);
-            s.Stop();
-            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
-            s.Reset();
-            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
-            PrintSquare(resultIterativeBroadening, n);
 
+            //testing the algorithms to find the first solution and measuring the performance
 
             Console.WriteLine("Forward Checking First Solution");
             List<Dictionary<int, int?>> forwardCheckingSolutions = new List<Dictionary<int, int?>>();
@@ -124,6 +120,17 @@ namespace MagicSquare
             s.Reset();
             Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
             PrintSquare(backTrackingSolutions[0], n);
+
+            Console.WriteLine("Iterative Broadening");
+            s.Start();
+            Dictionary<int, int?> resultIterativeBroadening = BasicSearchStrategies.IterativeBroadening(variables, domains, constraints);
+            s.Stop();
+            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            s.Reset();
+            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
+            PrintSquare(resultIterativeBroadening, n);
+
+            //testing the algorithms to find solutions and measuring the performance
 
             Console.WriteLine("Forward Checking");
             forwardCheckingSolutions = new List<Dictionary<int, int?>>();
@@ -149,7 +156,7 @@ namespace MagicSquare
             Console.ReadLine();
 
         }
-        static void PrintSquare(Dictionary<int, int?> variables, int n)
+        static void PrintSquare(Dictionary<int, int?> variables, int n) //printing the magic square
         {
             for (int i = 0; i < n; i++)
             {

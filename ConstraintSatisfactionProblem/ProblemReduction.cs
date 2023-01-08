@@ -14,7 +14,7 @@ namespace ConstraintSatisfactionProblem
                 List<string> newDomain = new List<string>();
                 for (int j = 0; j < domains[i].Count; j++)
                 {
-                    if (domains[i][j].Length == wordLength && !newDomain.Contains(domains[i][j].ToLower()))
+                    if (domains[i][j].Length == wordLength && !newDomain.Contains(domains[i][j].ToLower())) //removing the different length values from the domaint
                         newDomain.Add(domains[i][j].ToLower());
                 }
                 domains[i] = newDomain;
@@ -25,19 +25,19 @@ namespace ConstraintSatisfactionProblem
         {
             int steps = 0;
             List<Tuple<int, int>> q = new List<Tuple<int, int>>();
-            foreach (var c in constraints)
+            foreach (var c in constraints) //add all arc
             {
                 q.Add(new Tuple<int, int>(c.IDWordC, c.IDWordR));
                 q.Add(new Tuple<int, int>(c.IDWordR, c.IDWordC));
             }
-            while (q.Count > 0)
+            while (q.Count > 0) //while there is an arc in the queue
             {
                 steps++;
                 Tuple<int, int> actualArc = q[0];
                 q.RemoveAt(0);
-                if (Operations.ReviseDomain(actualArc.Item1, actualArc.Item2, words, domains, constraints))
+                if (Operations.ReviseDomain(actualArc.Item1, actualArc.Item2, words, domains, constraints)) // the revise domain function
                 {
-                    foreach (var c in constraints)
+                    foreach (var c in constraints) //add the related arcs if the domains changed
                     {
                         if (c.IDWordC == actualArc.Item1)
                         {
@@ -62,7 +62,7 @@ namespace ConstraintSatisfactionProblem
                 List<int?> newDomain = new List<int?>();
                 for (int j = 0; j < domains[i].Count; j++)
                 {
-                    if (domains[i][j] > 0 && domains[i][j] <= (variables.Count))
+                    if (domains[i][j] > 0 && domains[i][j] <= (variables.Count)) //removing the value from the domain if it is outside the interval
                         newDomain.Add(domains[i][j]);
                 }
                 domains[i] = newDomain;

@@ -126,7 +126,8 @@ namespace ConstraintSatisfactionProblem
                         if (currentDomain[i][c.charWordR] == word[c.charWordC])
                             newDomain.Add(currentDomain[i]);
                     }
-                    domains[c.IDWordR] = newDomain;
+                    if(newDomain.Count!=domains[c.IDWordR].Count)
+                        domains[c.IDWordR] = newDomain;
                 }
                 else if (c.IDWordR == id)
                 {
@@ -139,7 +140,8 @@ namespace ConstraintSatisfactionProblem
                         if (currentDomain[i][c.charWordC] == word[c.charWordR])
                             newDomain.Add(currentDomain[i]);
                     }
-                    domains[c.IDWordC] = newDomain;
+                    if (newDomain.Count != domains[c.IDWordC].Count)
+                        domains[c.IDWordC] = newDomain;
                 }
             }
         }
@@ -154,7 +156,8 @@ namespace ConstraintSatisfactionProblem
                     if (domains[i][j] != variables[id])
                         newDomain.Add(domains[i][j]);
                 }
-                domains[i] = newDomain;
+                if(newDomain.Count!= domains[i].Count)
+                    domains[i] = newDomain;
             }
         }
 

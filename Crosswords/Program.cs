@@ -156,18 +156,23 @@ namespace Crosswords
                 Console.Write("D" + i + "=" + domains[i].Count + " ");
             }
             Console.Write("\n");
-
-            int revisions=ProblemReduction.ArcConsistency(words, domains, constraints);
-            Console.WriteLine("Number of domain changes during arc consistency: " + revisions);
-
-            Console.Write("Size of domains after Arc Consistency: ");
+            Console.WriteLine("Run arc consistency before searches?(y/n)");
+            bool ac = Console.ReadLine() == "y" ? true : false;
             bool solvable = true;
-            for (int i = 0; i < domains.Length; i++)
+            if (ac)
             {
-                Console.Write("D" + i + "=" + domains[i].Count + " ");
-                solvable = domains[i].Count > 0;
+                int revisions = ProblemReduction.ArcConsistency(words, domains, constraints);
+                Console.WriteLine("Number of domain changes during arc consistency: " + revisions);
+
+                Console.Write("Size of domains after Arc Consistency: ");
+
+                for (int i = 0; i < domains.Length; i++)
+                {
+                    Console.Write("D" + i + "=" + domains[i].Count + " ");
+                    solvable = domains[i].Count > 0;
+                }
+                Console.Write("\n");
             }
-            Console.Write("\n");
             if (!solvable)
             {
                 Console.WriteLine("The problem is unsolvable");
@@ -176,15 +181,7 @@ namespace Crosswords
             }
             Stopwatch s = new Stopwatch();
 
-            BasicSearchStrategies.Steps = 0;
-            Console.WriteLine("Iterative Broadening");
-            s.Start();
-            Dictionary<int, char[]> resultIterativeBroadening =BasicSearchStrategies.IterativeBroadening(words, domains, constraints);
-            s.Stop();
-            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
-            s.Reset();
-            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
-            PrintMatrix(rows,columns,constraints, resultIterativeBroadening);
+
 
             
 
@@ -210,6 +207,17 @@ namespace Crosswords
             Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
             PrintMatrix(rows, columns, constraints, backTrackingSolutions[0]);
 
+
+            BasicSearchStrategies.Steps = 0;
+            Console.WriteLine("Iterative Broadening");
+            s.Start();
+            Dictionary<int, char[]> resultIterativeBroadening = BasicSearchStrategies.IterativeBroadening(words, domains, constraints);
+            s.Stop();
+            Console.WriteLine("Time: " + s.ElapsedMilliseconds);
+            s.Reset();
+            Console.WriteLine("Steps: " + BasicSearchStrategies.Steps);
+            PrintMatrix(rows, columns, constraints, resultIterativeBroadening);
+
             Console.WriteLine("Forward Checking");
             forwardCheckingSolutions = new List<Dictionary<int, char[]>>();
             BasicSearchStrategies.Steps = 0;
@@ -233,7 +241,8 @@ namespace Crosswords
             Console.WriteLine("Number of Found Solutions: " + backTrackingSolutions.Count);
             Console.ReadLine();
         }
-        static void PrintMatrix(int rows, int columns, List<WordsCharacterConstraints> constraints, Dictionary<int, char[]> words)
+
+        static void PrintMatrix(int rows, int columns, List<WordsCharacterConstraints> constraints, Dictionary<int, char[]> words) //print the matrix
         {
             for (int i = 0; i < rows; i++)
             {
@@ -249,7 +258,7 @@ namespace Crosswords
             }
         }
 
-        static WordsCharacterConstraints GetConstraintOfPosition(List<WordsCharacterConstraints> constraints, int x,int y)
+        static WordsCharacterConstraints GetConstraintOfPosition(List<WordsCharacterConstraints> constraints, int x,int y) 
         {
             foreach(var c in constraints)
             {

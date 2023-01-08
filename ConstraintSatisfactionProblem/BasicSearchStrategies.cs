@@ -116,7 +116,7 @@ namespace ConstraintSatisfactionProblem
                     Operations.ShrinkDomain(localDomains, constraints, words[variablePointer], variablePointer);
 
                     if (variablePointer < words.Count - 1)
-                        ForwardChecking(words, domains, constraints, variablePointer + 1,solutions,stopAfterOneResult);
+                        ForwardChecking(words, localDomains, constraints, variablePointer + 1,solutions,stopAfterOneResult);
                     else
                     {
                         HandleFoundResult(words,solutions);
@@ -136,7 +136,7 @@ namespace ConstraintSatisfactionProblem
             int b = 1;
             int maxDomainSize = domains[0].Count;
             _GotSolution = false;
-            for (int i = 1; i < domains.Length; i++)
+            for (int i = 1; i < domains.Length; i++) //find the max domainsize
             {
                 if (domains[i].Count > maxDomainSize)
                     maxDomainSize = domains[i].Count;
@@ -146,7 +146,7 @@ namespace ConstraintSatisfactionProblem
                 Breadth_bounded_dfs(variables, domains, constraints, 0, b);
                 b++;
             } while (b <= maxDomainSize && (variables.Values).ElementAt(variables.Count - 1) == null);
-
+            //copying the result
             Dictionary<int, int?> result = new Dictionary<int, int?>();
             foreach (KeyValuePair<int, int?> pair in variables)
             {
@@ -161,10 +161,10 @@ namespace ConstraintSatisfactionProblem
 
         }
         static void Breadth_bounded_dfs(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints, int variablePointer, int b)
-        {
+        {//almost the same as backtracking
             List<int?>[] localDomains = CopyDomains(domains, variablePointer);
             int iteration = 0;
-            while (localDomains[variablePointer].Count > 0 && iteration < b)
+            while (localDomains[variablePointer].Count > 0 && iteration < b) //added the b to the classic backtracking
             {
                 Steps++;
                 variables[variablePointer] = localDomains[variablePointer][0];
@@ -187,31 +187,31 @@ namespace ConstraintSatisfactionProblem
         }
         public static void BackTracking(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints, int variablePointer, List<Dictionary<int, int?>> solutions, bool stopAfterOneResult=false)
         {
-            List<int?>[] localDomains = CopyDomains(domains, variablePointer);
+            List<int?>[] localDomains = CopyDomains(domains, variablePointer); //make a local copy from the domains
             while (localDomains[variablePointer].Count > 0)
             {
-                Steps++;
-                variables[variablePointer] = localDomains[variablePointer][0];
-                if (Operations.CheckConsistency(variables, domains, constraints))
+                Steps++; //stepcounter
+                variables[variablePointer] = localDomains[variablePointer][0]; //take the next value
+                if (Operations.CheckConsistency(variables, domains, constraints)) //if consistent, go forward
                 {
                     
-                    if (variablePointer < variables.Count - 1)
+                    if (variablePointer < variables.Count - 1) //if this isn't the last variable call recursively the backtracking
                         BackTracking(variables, domains, constraints, variablePointer + 1,solutions,stopAfterOneResult);
                     else
                     {
-                        HandleFoundResult(variables,solutions);
+                        HandleFoundResult(variables,solutions); //add new result to solutions
                     }
                 }
 
-                localDomains[variablePointer].RemoveAt(0);
-                FillTheVariableWithNull(localDomains, variables, variablePointer);
+                localDomains[variablePointer].RemoveAt(0); //remove the investigated variable
+                FillTheVariableWithNull(localDomains, variables, variablePointer); //erase the variable
 
                 if (stopAfterOneResult && solutions.Count > 0)
                     return;
             }
         }
         public static void ForwardChecking(Dictionary<int, int?> variables, List<int?>[] domains, List<SumConstraint> constraints, int variablePointer, List<Dictionary<int, int?>> solutions, bool stopAfterOneResult = false)
-        {
+        { //same as backtracking except the domain reduction
             List<int?>[] localDomains = new List<int?>[domains.Length];
             localDomains[variablePointer] = new List<int?>();
             localDomains[variablePointer].AddRange(domains[variablePointer]);
@@ -228,10 +228,10 @@ namespace ConstraintSatisfactionProblem
                         localDomains[i].AddRange(domains[i]);
                     }
 
-                    Operations.ShrinkDomain(localDomains, constraints, variables, variablePointer);
+                    Operations.ShrinkDomain(localDomains, constraints, variables, variablePointer); //reducing the domain
 
                     if (variablePointer < variables.Count - 1)
-                        ForwardChecking(variables, domains, constraints, variablePointer + 1,solutions,stopAfterOneResult);
+                        ForwardChecking(variables, localDomains, constraints, variablePointer + 1,solutions,stopAfterOneResult);
                     else
                     {
                         HandleFoundResult(variables,solutions);
@@ -246,18 +246,10 @@ namespace ConstraintSatisfactionProblem
             }
         }
         #endregion
-
-
-
-
-
-
-
-
-        
+       
 
         static void HandleFoundResult(Dictionary<int, char[]> words, List<Dictionary<int, char[]>> solutions)
-        {
+        {//add the new solution to the solutions
             if (solutions == null)
                 return;
             Dictionary<int, char[]> newSolution = new Dictionary<int, char[]>();
@@ -276,8 +268,8 @@ namespace ConstraintSatisfactionProblem
             solutions.Add(newSolution);
         }
 
-        static void HandleFoundResult(Dictionary<int, int?> variables, List<Dictionary<int, int?>> solutions)
-        {
+        static void HandleFoundResult(Dictionary<int, int?> variables, List<Dictionary<int, int?>> solutions) 
+        {//add the new solution to the solutions
             if (solutions == null)
                 return;
             Dictionary<int, int?> newSolution = new Dictionary<int, int?>();
@@ -289,23 +281,15 @@ namespace ConstraintSatisfactionProblem
         }
         static void FillTheVariableWithNull(List<string>[] domains, Dictionary<int, char[]> words,int variablePointer)
         {
-            //if (domains[variablePointer].Count == 0)
-            //{
-                for (int i = 0; i < words[variablePointer].Length; i++)
-                {
-                    words[variablePointer][i] = '\0';
-                }
-          //  }
-
+            for (int i = 0; i < words[variablePointer].Length; i++)
+            {
+                words[variablePointer][i] = '\0';
+            }
         }
 
         static void FillTheVariableWithNull(List<int?>[] domains, Dictionary<int, int?> variables, int variablePointer)
         {
-            //if (domains[variablePointer].Count == 0)
-            //{
-                variables[variablePointer] = null;
-            //}
-
+           variables[variablePointer] = null;
         }
         static List<string>[] CopyDomains(List<string>[] domains, int start)
         {
